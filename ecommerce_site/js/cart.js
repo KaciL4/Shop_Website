@@ -38,7 +38,6 @@ function getCart() {
         return [];
     }
 }
-
 function saveCart(cart) {
    
     writeCookie(CART_COOKIE, JSON.stringify(cart), 7);
@@ -78,21 +77,24 @@ function handleQuantityChange(){
 }
 function addToCart(productId, quantity = 1) {
     let cart = getCart();
-    const existing = cart.find(item => item.id == productId);
-    const product = getProductById(id);
-    if(!product){
-        console.error('Product with ID ${id} not found.');
+    const product = getProductById(productId); 
+
+    if (!product) {
+        console.error(`Product with ID ${productId} not found.`);
         return;
     }
+    const existing = cart.find(item => item.id == productId);
+
     if (existing) {
         existing.qty += quantity;
     } else {
-        cart.push({ productId: productId, qty: quantity });
+        cart.push({ id: productId, qty: quantity });
     }
-    cart =cart.filter(item=>item.qty>0); 
+
+    // Filter out invalid quantities
+    cart = cart.filter(item => item.qty > 0); 
     saveCart(cart);
 }
-
 function updateCartItemQuantity(productId, quantity) {
     const cart = getCart();
     const item = cart.find(i => i.id === productId);
@@ -108,7 +110,7 @@ function updateCartItemQuantity(productId, quantity) {
 
 function removeFromCart(productId) {
     const cart = getCart();
-    saveCart(cart.filter(i => i.id !== productId));
+    saveCart(cart.filter(item => item.id !== productId));
     saveCart(cart);
     if($("#cart-section").length){
         renderCart(cart);
@@ -135,17 +137,23 @@ function updateQuantity(id, newQty){
     }
 }
 //Calculates subtotal, tax and total
-function cartTotal(cart){
+function cartTotals(cart) {
     let subtotal = 0;
-    cart.forEach(item=>{
-        const product = getProductById(item.id);
-        if (product){
-            subtotal += product.price*item.qty;
+    cart.forEach(item => {
+        const p = getProductById(item.id);
+        if (p && p.price) {
+            subtotal += p.price * item.qty;
         }
     });
-    const tax =subtotal*TAX_RATE;
-    const total = subtotal+tax;
-    return {subtotal,tax,total};
+    
+    const tax = subtotal * TAX_RATE;
+    const total = subtotal + tax;
+    
+    return { 
+        subtotal: subtotal,
+        tax: tax,
+        total: total
+    };
 }
 function renderCart(cart) {
     const cartItemsContainer = $("#cart-items-list");
@@ -250,6 +258,7 @@ function initCartPage() {
         $("#cart-checkout-btn").on("click",function(e){
             e.preventDefault();
             if (isLoggedIn()){
+                window.location.href="checkout.html";
             }else{
                 window.location.href = "login.html?redirect=checkout.html";
             }
