@@ -46,8 +46,14 @@ function loadProducts(callback) {
                 allCategories = [];
                 // Manually parse the XML structure to get the category names
                 $(xmlData).find('category').each(function() {
-                    const categoryName = $(this).find('name').text();
-                    allCategories.push({ name: categoryName }); 
+                    const $category = $(this);
+                    const categoryName = $category.find('name').text();
+
+                    allCategories.push({
+                        name: categoryName,
+                        slug: slugifyCategory(categoryName),
+                        description:$category.find('description').text()
+                    });
                 });
             }
         }),
@@ -61,13 +67,24 @@ function loadProducts(callback) {
     // Use $.when with the array of requests to wait for all data to load
     $.when(...productRequests).then(function () {
         // Normalize products from your data structure
-        allProducts = allProducts.map(p => ({
-            ...p,
-            title: p.name,
-            categoryName: p.category,
-            categorySlug: slugifyCategory(p.category),
-            reviews: [] // will be filled in the next step
-        }));
+        allProducts = allProducts.map(p => {
+            const officialName = p.category;
+            // Find the official category object using the raw category name from products.json
+            const officialCategory = allCategories.find(c => c.name === officialName);
+    
+            // Use the official slug if found, otherwise generate it (fallback)
+             const normalizedSlug = officialCategory 
+                           ? officialCategory.slug 
+                           : slugifyCategory(p.category);
+            return{
+                 ...p,
+                title: p.name,
+                categoryName: officialName,
+                categorySlug: normalizedSlug,
+                reviews: [] // will be filled in the next step
+            }
+            
+        });
 
         // Flatten and merge reviews
         rawReviews.forEach(pr => {
