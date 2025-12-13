@@ -144,7 +144,7 @@ function renderFeaturedProducts() {
     if (container.length === 0) return;
     container.empty();
     // Use first N products as "featured" if no explicit flag
-    const featured = allProducts.slice(0, 8);
+    const featured = allProducts.slice(0, 49);
     featured.forEach(p => container.append(productCardHtml(p)));
 }
 
