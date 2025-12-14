@@ -61,10 +61,12 @@ function initLoginPage() {
         msg.text("Logging in...").removeClass("success error").addClass("loading");
 
         $.ajax({
-            url: "https://reqres.in/api/login",
+            url: "https://api.allorigins.win/raw?url=https://reqres.in/api/login",
             method: "POST",
             contentType: "application/json",
             data: JSON.stringify({ email: email, password: password }),
+
+
             success: function (response) {
                 // Mock API returns { token: "..." } on success
                 setAuthToken(response.token, email);
@@ -94,10 +96,12 @@ function initRegisterPage() {
         msg.text("Registering...").removeClass("success error").addClass("loading");
 
         $.ajax({
-            url: "https://reqres.in/api/register",
+            url: "https://api.allorigins.win/raw?url=https://reqres.in/api/register",
             method: "POST",
             contentType: "application/json",
             data: JSON.stringify({ email: email, password: password }),
+
+
             success: function (response) {
                 // Mock API returns { id: X, token: "..." } on success
                 setAuthToken(response.token, email);
@@ -144,7 +148,8 @@ function initProfilePage() {
         $("#profile-phone-input").val(userProfile.phone || "");
     }
 
-    $.getJSON("https://reqres.in/api/users/2", function (data) {
+    $.getJSON("https://corsproxy.io/?https://reqres.in/api/users/2", function (data) {
+
         const user = data.data;
         if (!userProfile.name) userProfile.name = user.first_name + " " + user.last_name;
         if (!userProfile.avatar) userProfile.avatar = user.avatar;

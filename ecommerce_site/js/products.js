@@ -192,7 +192,7 @@ function initPLP() {
     }
 
     let currentPage = 1;
-    const perPage = 50;
+    const perPage = 49;
 
     function applyFiltersAndRender() {
         let filtered = [...allProducts];
