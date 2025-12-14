@@ -38,43 +38,19 @@ function getCart() {
         return [];
     }
 }
+function updateCartCountBadge() {
+    const cart = getCart();
+    // Sum up the quantities of all items in the cart
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0); 
+    // Update the element with ID 'cart-count' in the header
+    $("#cart-count").text(totalQty);
+}
 function saveCart(cart) {
    
     writeCookie(CART_COOKIE, JSON.stringify(cart), 7);
     updateCartCountBadge();
 }
 
-function cartTotals(cart) {
-    let subtotal = 0;
-    cart.forEach(item => {
-        const p = getProductById(item.id);
-        if (p&& product.price) {
-            subtotal += p.price * item.qty;
-        }
-    });
-    const tax = subtotal * TAX_RATE;
-    const total = subtotal + tax;
-    return { subtotal:subtotal,
-             tax:tax,
-             tota: total 
-    };
-}
-//Event handler to change items quantity
-function handleQuantityChange(){
-    const id =$(this).data("product-id");
-    let newQty = parseInt($(this).val(),10)||1;
-    newQty = Math.max(1,newQty);// enesure quantity is at least 1
-    $(this).val(newQty);
-
-    const cart = getCart();
-    const itemIndex= cart.findIndex(item=>item.id==id);
-
-    if(itemIndex> -1){
-        cart[itemIndex].qty = newQty;
-        saveCart(cart);
-        renderCart();
-    }
-}
 function addToCart(productId, quantity = 1) {
     let cart = getCart();
     const product = getProductById(productId); 
@@ -111,9 +87,8 @@ function updateCartItemQuantity(productId, quantity) {
 function removeFromCart(productId) {
     const cart = getCart();
     saveCart(cart.filter(item => item.id !== productId));
-    saveCart(cart);
     if($("#cart-section").length){
-        renderCart(cart);
+        renderCart(getCart());
     }
 }
 //Event handler to remove an items from the cart
@@ -124,18 +99,7 @@ function handleRemoveItem(){
     saveCart(newCart);
     renderCart();
 }
-function updateQuantity(id, newQty){
-    let cart = getCart();
-    const existingItem = cart.find(item=>item.id==id);
-    const qty =parseInt(newQty,10);
-    if(existingItem&& qty>=1){
-        removeFromCart(id);
-        return;
-    }
-    if($('#cart-section').length){
-        renderCart(getCart());
-    }
-}
+
 //Calculates subtotal, tax and total
 function cartTotals(cart) {
     let subtotal = 0;
