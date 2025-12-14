@@ -51,6 +51,11 @@ $(document).ready(function () {
             slides.eq(idx).addClass("active");
         }, 4000);
     }
+
+    //Update count badge 
+    if (typeof updateCartCount === "function") {
+        updateCartCount();
+    }
 });
 // Function to read the value of a specific cookie by its name.
 function readCookie(name) {

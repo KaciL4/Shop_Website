@@ -40,10 +40,25 @@ function getCart() {
 }
 function updateCartCountBadge() {
     const cart = getCart();
-    // Sum up the quantities of all items in the cart
-    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0); 
-    // Update the element with ID 'cart-count' in the header
-    $("#cart-count").text(totalQty);
+    let total = 0;
+
+    cart.forEach(item => {
+        if (typeof item === "number" || typeof item === "string") {
+            // cart is just product IDs
+            total += 1;
+        } else if (item.quantity) {
+            // cart item has quantity
+            total += Number(item.quantity);
+        } else if (item.qty) {
+            // fallback for qty naming
+            total += Number(item.qty);
+        } else {
+            // default: count as 1
+            total += 1;
+        }
+    });
+
+    $("#cart-count").text(total);
 }
 function saveCart(cart) {
    
@@ -350,4 +365,5 @@ $(document).ready(function () {
     initCartPage();
     initCheckoutPage();
     initConfirmationPage();
+    updateCartCountBadge();
 });
