@@ -12,11 +12,11 @@
  */
 
 const AUTH_COOKIE = "myshop_auth";
-
+// Checks the existence of the authentication cookie to determine if the user is currently logged in
 function isLoggedIn() {
     return !!readCookie(AUTH_COOKIE);
 }
-
+// function to store the authentication token and user email in a JSON string
 function setAuthToken(token, email) {
     /* Convert token + email into a JSON string and store it for 7 days */
     writeCookie(AUTH_COOKIE, JSON.stringify({ token, email }), 7);
@@ -29,7 +29,7 @@ function clearAuth() {
     writeCookie(AUTH_COOKIE, "", -1);
     updateAccountLink();
 }
-
+//function to retrieves and parse authentication data from cookie
 function getAuth() {
     const raw = readCookie(AUTH_COOKIE);
     if (!raw) return null;
@@ -41,7 +41,7 @@ function getAuth() {
         return null;
     }
 }
-
+//function to update header account link based on the user's login status
 function updateAccountLink() {
     const link = $("#account-link");
     if (isLoggedIn()) {
@@ -56,7 +56,7 @@ function updateAccountLink() {
         link.attr("title", "Login");
     }
 }
-
+//function to initializes the logic for the login page
 function initLoginPage() {
     /* Get the login form */
     const form = $("#login-form");
@@ -97,7 +97,7 @@ function initLoginPage() {
         });
     });
 }
-
+//function to initialize the logic for registration page
 function initRegisterPage() {
     const form = $("#register-form");
     if (form.length === 0) return;
@@ -109,7 +109,7 @@ function initRegisterPage() {
         const password = $("#register-password").val().trim();
 
         msg.text("Registering...").removeClass("success error").addClass("loading");
-
+        /* Sends registration request to the ReqRes demo API endpoint */
         $.ajax({
             url: "https://api.allorigins.win/raw?url=https://reqres.in/api/register",
             method: "POST",
@@ -136,7 +136,7 @@ function initRegisterPage() {
         });
     });
 }
-
+//function to initialize the logic for the profile page
 function initProfilePage() {
     const page = $("#profile-page");
     if (page.length === 0) return;
@@ -168,7 +168,7 @@ function initProfilePage() {
         $("#profile-name-input").val(userProfile.name || "");
         $("#profile-phone-input").val(userProfile.phone || "");
     }
-
+/* Fetches initial mock user data (name, avatar) from a separate ReqRes API endpoint (via proxy) to enrich profile data. */
     $.getJSON("https://corsproxy.io/?https://reqres.in/api/users/2", function (data) {
 
         const user = data.data;
@@ -182,7 +182,7 @@ function initProfilePage() {
         if (!userProfile.phone) userProfile.phone = "(555) 000-0000";
         renderProfile();
     });
-
+    //submit  handler to the profile update form
     $("#profile-form").on("submit", function (e) {
         e.preventDefault();
         userProfile.name = $("#profile-name-input").val().trim();

@@ -28,6 +28,7 @@ function writeCookie(name, value, days) {
     document.cookie = name + "=" + (value || "") + expires + "; path=/";
 }
 
+// Returns cart array from cookie
 function getCart() {
 
     const raw = readCookie(CART_COOKIE);
@@ -38,30 +39,29 @@ function getCart() {
         return [];
     }
 }
+
+// Updates count badge in the header
 function updateCartCountBadge() {
     const cart = getCart();
     let total = 0;
 
     cart.forEach(item => {
         if (typeof item === "number" || typeof item === "string") {
-            // cart is just product IDs
             total += 1;
         } else if (item.quantity) {
-            // cart item has quantity
             total += Number(item.quantity);
         } else if (item.qty) {
-            // fallback for qty naming
             total += Number(item.qty);
         } else {
-            // default: count as 1
             total += 1;
         }
     });
 
     $("#cart-count").text(total);
 }
+
+//Save cart to cookie and update badge
 function saveCart(cart) {
-   
     writeCookie(CART_COOKIE, JSON.stringify(cart), 7);
     updateCartCountBadge();
 }
@@ -86,6 +86,8 @@ function addToCart(productId, quantity = 1) {
     cart = cart.filter(item => item.qty > 0); 
     saveCart(cart);
 }
+
+// Updates cart
 function updateCartItemQuantity(productId, quantity) {
     const cart = getCart();
     const item = cart.find(i => i.id === productId);
@@ -134,12 +136,15 @@ function cartTotals(cart) {
         total: total
     };
 }
+
+// Render cart items and total
 function renderCart(cart) {
     const cartItemsContainer = $("#cart-items-list");
     const cartSummaryContainer = $("#cart-summary-totals");
     cartItemsContainer.empty();
     cartSummaryContainer.empty();
 
+    //Empty cart
     if (cart.length === 0) {
         cartItemsContainer.html("<p class=\"empty-cart-message\">Your cart is empty.</p>");
         cartSummaryContainer.html(`
@@ -239,9 +244,8 @@ function renderCheckoutSummary(cart) {
     $("#checkout-tax").text(`${totals.tax.toFixed(2)}`);
     $("#checkout-total").text(`${totals.total.toFixed(2)}`);
 }
-// =========================================================
-// PAGE INITIALIZATION FUNCTIONS
-// =========================================================
+
+// ============================================== PAGE INITIALIZATION FUNCTIONS ===============================================
 
 function initCartPage() {
     // ensure product data is loaded before rendering the cart
@@ -277,6 +281,7 @@ function initCartPage() {
         });
     });
 }
+
 function initCheckoutPage() {
     const section = $("#checkout-page");
     if (section.length === 0) return;
@@ -361,6 +366,7 @@ function initConfirmationPage() {
     }
 }
 
+// Initiate all pages
 $(document).ready(function () {
     initCartPage();
     initCheckoutPage();
