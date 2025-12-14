@@ -293,28 +293,50 @@ function initPDP() {
 
     const img = product.image || "assets/placeholder.png";
     container.html(`
-        <div>
-            <img src="${img}" alt="${product.title}">
+    <div>
+        <img src="${img}" alt="${product.title}">
+    </div>
+    <div>
+        <h1>${product.title}</h1>
+        <p class="price">$${product.price.toFixed(2)}</p>
+        <p>SKU: ${product.sku}</p>
+        <p>Availability: ${product.stock > 0 ? "In stock" : "Out of stock"}</p>
+        <p>${product.description}</p>
+
+        <div class="quantity-selector">
+            <label for="pdp-qty">Qty:</label>
+            <input type="number" id="pdp-qty" min="1" value="1">
         </div>
-        <div>
-            <h1>${product.title}</h1>
-            <p class="price">$${product.price.toFixed(2)}</p>
-            <p>SKU: ${product.sku}</p>
-            <p>Availability: ${product.stock > 0 ? "In stock" : "Out of stock"}</p>
-            <p>${product.description}</p>
-            <div class="quantity-selector">
-                <label for="pdp-qty">Qty:</label>
-                <input type="number" id="pdp-qty" min="1" value="1">
-            </div>
+
+        <div class="pdp-actions">
             <button class="btn primary" id="pdp-add-cart">Add to Cart</button>
+            <button class="btn secondary" id="pdp-add-wishlist">❤️ Add to Wishlist</button>
         </div>
-    `);
+    </div>
+`);
+
     // click handler to the "Add to Cart" button
     $("#pdp-add-cart").on("click", function () {
         const qty = parseInt($("#pdp-qty").val(), 10) || 1;
         addToCart(product.id, qty);
         alert("Added to cart!");
     });
+
+    // wishlist click handler
+    $("#pdp-add-wishlist").on("click", function () {
+    addToWishlist(product.id);
+    });
+
+    // Disable btn if product is already in Wishlist
+    const wishlist = getWishlist();
+    const wishlistBtn = $("#pdp-add-wishlist");
+
+    if (wishlist.includes(product.id)) {
+        wishlistBtn.text("In Wishlist");
+        wishlistBtn.prop("disabled", true);
+    }
+
+
 // Renders related products by filtering for items in the same category
     const relatedContainer = $("#related-products");
     const related = allProducts.filter(p => p.category === product.category && p.id !== product.id);
