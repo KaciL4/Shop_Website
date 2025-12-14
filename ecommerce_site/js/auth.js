@@ -18,11 +18,14 @@ function isLoggedIn() {
 }
 
 function setAuthToken(token, email) {
+    /* Convert token + email into a JSON string and store it for 7 days */
     writeCookie(AUTH_COOKIE, JSON.stringify({ token, email }), 7);
     updateAccountLink();
 }
 
+/* Log the user out */
 function clearAuth() {
+    /* Overwrite the cookie with an expired date to delete it */
     writeCookie(AUTH_COOKIE, "", -1);
     updateAccountLink();
 }
@@ -30,6 +33,8 @@ function clearAuth() {
 function getAuth() {
     const raw = readCookie(AUTH_COOKIE);
     if (!raw) return null;
+
+    /* Try to convert JSON string back into an object */
     try {
         return JSON.parse(raw);
     } catch {
@@ -41,18 +46,27 @@ function updateAccountLink() {
     const link = $("#account-link");
     if (isLoggedIn()) {
         link.attr("href", "profile.html");
+        
+        /* Tooltip text */
         link.attr("title", "Profile");
     } else {
         link.attr("href", "login.html");
+
+        /* Tooltip text */
         link.attr("title", "Login");
     }
 }
 
 function initLoginPage() {
+    /* Get the login form */
     const form = $("#login-form");
+
+    /* If this page does not have the login form, stop */
     if (form.length === 0) return;
 
+    /* Message area for feedback */
     const msg = $("#login-message");
+
     form.on("submit", function (e) {
         e.preventDefault();
         const email = $("#login-email").val().trim();
@@ -60,6 +74,7 @@ function initLoginPage() {
 
         msg.text("Logging in...").removeClass("success error").addClass("loading");
 
+        /* Send login request to demo API */
         $.ajax({
             url: "https://api.allorigins.win/raw?url=https://reqres.in/api/login",
             method: "POST",

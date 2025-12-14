@@ -12,10 +12,10 @@
  * - Integrating with the cart logic via addToCart()
  */
 
-let allProducts = [];
-let allCategories = [];
-let allReviews = []; // flattened
-
+let allProducts = [];//array to store all product objects once loaded
+let allCategories = [];//array to store all category objects (name, slug, description).
+let allReviews = []; // array to store all reviews, flattened for easy lookup across products.
+// Converts a category name into a URL-friendly, lowercased, hyphen-separated string (slug)
 function slugifyCategory(name) {
     return name
         .toLowerCase()
@@ -23,22 +23,22 @@ function slugifyCategory(name) {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
 }
-
+//function to load all necessary data (products, categories, reviews) using AJAX, normalizes it, and executes a callback function upon completion.
 function loadProducts(callback) {
     if (allProducts.length > 0) {
         if (callback) callback();
         return;
     }
     let rawReviews = [];
-    
+
     // Use an array to store deferred objects for $.when
     const productRequests = [
         // path for products.json
         $.getJSON("data/products.json", function (data) {
             allProducts = data;
         }),
-        
-        // path and handle categories.xml instead of categories.json
+
+        // Loads and manually parses category data from categories.xml
         $.ajax({
             url: "data/categories.xml",
             dataType: "xml",
@@ -58,7 +58,7 @@ function loadProducts(callback) {
             }
         }),
 
-        // path for reviews.json
+        // Loads raw review data from reviews.json
         $.getJSON("data/reviews.json", function (data) {
             rawReviews = data;
         })
@@ -71,19 +71,19 @@ function loadProducts(callback) {
             const officialName = p.category;
             // Find the official category object using the raw category name from products.json
             const officialCategory = allCategories.find(c => c.name === officialName);
-    
+
             // Use the official slug if found, otherwise generate it (fallback)
-             const normalizedSlug = officialCategory 
-                           ? officialCategory.slug 
-                           : slugifyCategory(p.category);
+            const normalizedSlug = officialCategory
+                ? officialCategory.slug
+                : slugifyCategory(p.category);
             return{
-                 ...p,
+                ...p,
                 title: p.name,
                 categoryName: officialName,
                 categorySlug: normalizedSlug,
                 reviews: [] // will be filled in the next step
             }
-            
+
         });
 
         // Flatten and merge reviews
@@ -102,7 +102,7 @@ function loadProducts(callback) {
 
         // Flatten all reviews for lookup
         allReviews = allProducts.flatMap(p => p.reviews);
-
+        // Executes the callback and initializes page-specific rendering functions
         if (callback) callback();
 
         // Initialize pages that rely on product data
@@ -111,17 +111,17 @@ function loadProducts(callback) {
         initProductDetailPage();
     });
 }
-
+//function to retrieve a single product object from `allProducts` by matching its numerical ID
 function getProductById(id) {
     const searchId = parseInt(id,10);
     return allProducts.find(p => p.id ===searchId);
 }
-
+//function to retrieve all review objects from `allReviews` that match the given product ID
 function getReviewsForProduct(id) {
     const pid = String(id);
     return allReviews.filter(r => r.productId === pid);
 }
-
+// function to render category cards on the home page using data from `allCategories`
 function renderCategoriesOnHome() {
     const container = $("#home-categories");
     if (container.length === 0) return;
@@ -137,7 +137,7 @@ function renderCategoriesOnHome() {
         container.append(card);
     });
 }
-
+// function to generate the HTML string for a single product card, optionally highlighting a search term in the title
 function productCardHtml(p, searchTerm) {
     const img = p.image || "assets/placeholder.png";
     let titleHtml = p.title;
@@ -155,7 +155,7 @@ function productCardHtml(p, searchTerm) {
         <a href="product.html?id=${encodeURIComponent(p.id)}" class="btn secondary">View details</a>
     </article>`;
 }
-
+// function to render a set of product as "featured" on the home page
 function renderFeaturedProducts() {
     const container = $("#featured-products");
     if (container.length === 0) return;
@@ -164,7 +164,7 @@ function renderFeaturedProducts() {
     const featured = allProducts.slice(0, 49);
     featured.forEach(p => container.append(productCardHtml(p)));
 }
-
+// function to initialize all functionality for the Product Listing Page (PLP): filters, sorting, pagination, and URL handling
 function initPLP() {
     const list = $("#product-list");
     const breadcrumbs = $("#breadcrumbs");
@@ -259,7 +259,7 @@ function initPLP() {
             pagination.append(btn);
         }
     }
-
+    // Attaches event handlers to re-run `applyFiltersAndRender` whenever a filter or sort control changes
     priceRange.on("input change", applyFiltersAndRender);
     categoryFilter.on("change", function () {
         currentPage = 1;
@@ -269,12 +269,12 @@ function initPLP() {
 
     applyFiltersAndRender();
 }
-
+// function to initialize all functionality for the Product Detail Page (PDP): displays product data, handles the "Add to Cart" button, and renders related products/reviews
 function initPDP() {
     const container = $("#product-detail");
     const breadcrumbs = $("#breadcrumbs");
     if (container.length === 0) return;
-
+// Retrieves product ID from URL and fetches the product data using `getProductById`
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get("id");
     const product = getProductById(id);
@@ -282,7 +282,7 @@ function initPDP() {
         container.html("<p>Product not found.</p>");
         return;
     }
-
+// Updates breadcrumbs to reflect the product's category and title
     if (breadcrumbs.length) {
         const catSlug = product.categorySlug;
         const catObj = allCategories.find(c => c.slug === catSlug);
@@ -309,17 +309,17 @@ function initPDP() {
             <button class="btn primary" id="pdp-add-cart">Add to Cart</button>
         </div>
     `);
-
+    // click handler to the "Add to Cart" button
     $("#pdp-add-cart").on("click", function () {
         const qty = parseInt($("#pdp-qty").val(), 10) || 1;
         addToCart(product.id, qty);
         alert("Added to cart!");
     });
-
+// Renders related products by filtering for items in the same category
     const relatedContainer = $("#related-products");
     const related = allProducts.filter(p => p.category === product.category && p.id !== product.id);
-    related.slice(0, 8).forEach(p => relatedContainer.append(productCardHtml(p)));
-
+    related.slice(0, 7).forEach(p => relatedContainer.append(productCardHtml(p)));
+// Renders reviews using the `getReviewsForProduct` helper function
     const reviews = getReviewsForProduct(product.id);
     const reviewsList = $("#reviews-list");
     reviewsList.empty();
